@@ -19,7 +19,9 @@ Booking system,The booking system is the core functionality of the marketplace. 
 
 -I also removed the wishlist.Users will not be able to save items to a wishlist in the MVP. This feature does not contribute to the core borrowing flow and can be added once the platform has an active user base.
 ## What I pushed back on (and why — be honest and kind)
--
+- The original idea was to require users to sign up before they could view any listings. I recommended allowing users to browse items first and only requiring registration when they want to make a booking. This reduces friction for new users and lets them see the value of the platform before creating an account.
+
+Offline functionality was postponed because the application relies on current information such as item availability and bookings. Supporting offline access would significantly increase development complexity while providing limited value for the initial release.
 
 ## What I'd do next, if we keep going
 -the messaging would be nice to have, but not essential for validating the marketplace. Communication can initially happen through booking confirmations or contact details.referrals, reviews and real-time updates—can be added in later iterations after validating that people actually want to lend and borrow items.
