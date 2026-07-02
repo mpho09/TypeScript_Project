@@ -4,7 +4,7 @@ import { Home } from './pages/Home';
 import { ItemDetail } from './pages/ItemDetail';
 import { Booking } from './pages/Booking';
 import { Login } from './pages/Login';
-import { useAuth } from './pages/context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import type { ReactNode } from 'react';
 
 function RequireAuth({ children }: { children: ReactNode }) {

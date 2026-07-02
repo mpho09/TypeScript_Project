@@ -1,5 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../pages/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 export function Header() {
   const { user, logout } = useAuth();

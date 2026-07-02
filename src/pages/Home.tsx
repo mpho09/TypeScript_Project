@@ -1,27 +1,55 @@
-import { useMemo, useState } from 'react';
-import { ITEMS as items } from '../data/items';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchItems } from '../data/items';
+import type { Item } from '../data/types';
 import { CatalogCard } from '../components/CatalogCard';
 import { Filters, type FilterState } from '../components/Filters';
 
 export function Home() {
+  const [items, setItems] = useState<Item[] | null>(null);
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
-    maxDistanceMeters: 5000,
+    maxDistanceKm: 20,
     cost: 'any',
   });
 
+  useEffect(() => {
+    fetchItems().then(setItems);
+  }, []);
+
+  const listable = useMemo(
+    () => (items ?? []).filter(i => i.status !== 'removed'),
+    [items]
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return items.filter(it => {
-      if (q && !(`${it.title} ${it.description} ${it.callNumber}`.toLowerCase().includes(q))) return false;
-      if (filters.categories.length && !filters.categories.includes(it.category)) return false;
-      if (it.distanceMeters > filters.maxDistanceMeters) return false;
-      if (filters.cost === 'free' && it.pricePerDay !== 0) return false;
-      if (filters.cost === 'paid' && it.pricePerDay === 0) return false;
+    return listable.filter(it => {
+      if (q && !(`${it.title} ${it.description}`.toLowerCase().includes(q))) return false;
+      if (filters.categories.length && !filters.categories.includes(it.category as any)) return false;
+      // distance: unknown distance passes only when the slider is at max ("any")
+      if (it.distanceKm == null) {
+        if (filters.maxDistanceKm < 20) return false;
+      } else if (it.distanceKm > filters.maxDistanceKm) {
+        return false;
+      }
+      // cost: null price is neither free nor paid — treat as "ask", show only under "any"
+      if (filters.cost === 'free' && !(it.price && it.price.amountCents === 0)) return false;
+      if (filters.cost === 'paid' && !(it.price && it.price.amountCents > 0)) return false;
       return true;
     });
-  }, [query, filters]);
+  }, [query, filters, listable]);
+
+  const sorted = useMemo(
+    () => [...filtered].sort((a, b) => {
+      // items with a distance come first, sorted ascending; nulls last
+      if (a.distanceKm == null && b.distanceKm == null) return 0;
+      if (a.distanceKm == null) return 1;
+      if (b.distanceKm == null) return -1;
+      return a.distanceKm - b.distanceKm;
+    }),
+    [filtered]
+  );
 
   return (
     <>
@@ -34,25 +62,27 @@ export function Home() {
         <label className="search">
           <span className="search-label">Find</span>
           <input
-            placeholder="Search by name, description, or call number…"
+            placeholder="Search by name or description…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
         <div className="spread" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--pencil)' }}>
-          <span>{filtered.length} of {items.length} entries</span>
+          <span>
+            {items == null ? 'Loading catalog…' : `${sorted.length} of ${listable.length} entries`}
+          </span>
           <span>SORTED · NEAREST</span>
         </div>
       </div>
 
       <div className="controls">
         <div className="card-grid">
-          {filtered.length === 0 ? (
+          {items == null ? (
+            <div className="empty">Fetching catalog cards…</div>
+          ) : sorted.length === 0 ? (
             <div className="empty">No matching cards in this drawer.</div>
           ) : (
-            [...filtered]
-              .sort((a, b) => a.distanceMeters - b.distanceMeters)
-              .map(it => <CatalogCard key={it.id} item={it} />)
+            sorted.map(it => <CatalogCard key={it.id} item={it} />)
           )}
         </div>
         <Filters value={filters} onChange={setFilters} />

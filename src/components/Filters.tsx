@@ -1,12 +1,12 @@
-import type { Category } from '../data/types';
+export type Category = 'power-tools' | 'hand-tools' | 'outdoor' | 'garden' | 'kitchen' | 'party';
 
 export interface FilterState {
   categories: Category[];
-  maxDistanceMeters: number;
+  maxDistanceKm: number;   // 999 = "any distance", also includes unknown
   cost: 'any' | 'free' | 'paid';
 }
 
-const CATEGORIES = ['tools', 'kitchen', 'outdoors', 'books', 'kids', 'electronics', 'other'] as Category[];
+const CATEGORIES: Category[] = ['power-tools', 'hand-tools', 'outdoor', 'garden', 'kitchen', 'party'];
 
 export function Filters({ value, onChange }: { value: FilterState; onChange: (v: FilterState) => void; }) {
   const toggleCat = (c: Category) => {
@@ -37,14 +37,14 @@ export function Filters({ value, onChange }: { value: FilterState; onChange: (v:
         <input
           className="range"
           type="range"
-          min={100}
-          max={5000}
-          step={100}
-          value={value.maxDistanceMeters}
-          onChange={(e) => onChange({ ...value, maxDistanceMeters: Number(e.target.value) })}
+          min={1}
+          max={20}
+          step={1}
+          value={value.maxDistanceKm}
+          onChange={(e) => onChange({ ...value, maxDistanceKm: Number(e.target.value) })}
         />
         <div className="range-val">
-          Within {value.maxDistanceMeters < 1000 ? `${value.maxDistanceMeters} m` : `${(value.maxDistanceMeters / 1000).toFixed(1)} km`}
+          Within {value.maxDistanceKm} km {value.maxDistanceKm >= 20 && '(any)'}
         </div>
       </fieldset>
 
